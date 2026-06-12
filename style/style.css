@@ -666,7 +666,10 @@ footer {
 }
 @media (max-width: 768px) {
 
-  .player-cover-wrap.playing img,
+  .player-cover-wrap.playing img {
+    animation: coverSpin 120s linear infinite !important;
+  }
+
   .main-photo-float,
   .final-love,
   .letter-seal-heart,
