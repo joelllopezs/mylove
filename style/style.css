@@ -664,3 +664,15 @@ footer {
     transition-duration: 0.01ms !important;
   }
 }
+@media (max-width: 768px) {
+
+  .player-cover-wrap.playing img,
+  .main-photo-float,
+  .final-love,
+  .letter-seal-heart,
+  .final-heart,
+  .footer-heart {
+    animation: none !important;
+  }
+
+}
