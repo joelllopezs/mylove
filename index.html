@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feliz Dia dos Namorados ❤️</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Dancing+Script:wght@400;600;700&family=Lato:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style/style.css">
+</head>
+
+<body>
+
+  <!-- FUNDO: canvas de corações flutuantes sutis -->
+  <canvas id="hearts-canvas"></canvas>
+
+  <div class="page-wrapper">
+
+    <!-- ===================================================
+         SEÇÃO 1 — PLAYER DE MÚSICA
+         Edite CONFIG no bloco JS ao final do arquivo
+    =================================================== -->
+    <section class="player-section reveal">
+      <p class="player-label">♫ Tocando agora</p>
+      <div class="player-card">
+
+        <!-- Capa redonda com rotação lenta -->
+        <div class="player-cover-wrap" id="cover-wrap">
+          <img id="cover-img"
+               src="./assets/fotos/capa.jpeg"
+               alt="Capa da música" />
+        </div>
+
+        <div class="player-info">
+          <p class="player-song-name" id="song-name">Nossa Música</p>
+          <p class="player-artist">Para você, com amor ❤</p>
+          <div class="equalizer paused" id="equalizer">
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+          </div>
+        </div>
+
+        <div class="player-progress-bar" id="progress-bar">
+          <div class="player-progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="player-time">
+          <span id="time-current">0:00</span>
+          <span id="time-total">0:00</span>
+        </div>
+
+        <div class="player-controls">
+          <button class="player-btn" id="btn-backward" title="Reiniciar">⏮</button>
+          <button class="player-btn player-btn-play" id="btn-play" title="Play/Pause">▶</button>
+          <button class="player-btn" id="btn-forward" title="+10s">⏭</button>
+        </div>
+      </div>
+      <audio id="audio-player" preload="auto"></audio>
+    </section>
+
+    <div class="divider reveal"><div class="divider-line"></div><span class="divider-icon">❤</span><div class="divider-line"></div></div>
+
+    <!-- ===================================================
+         SEÇÃO 2 — FOTO PRINCIPAL
+         Troque o src de #main-photo pela sua foto
+         (use caminho relativo ou URL absoluta)
+    =================================================== -->
+    <section class="main-photo-section reveal">
+      <div class="main-photo-frame">
+        <img id="main-photo"
+             src="./assets/fotos/imagmgrande.jpeg"
+             alt="Nossa foto" />
+      </div>
+      <p class="main-photo-caption">Você e eu, sempre. 🌹</p>
+    </section>
+
+    <div class="divider reveal"><div class="divider-line"></div><span class="divider-icon">✦</span><div class="divider-line"></div></div>
+
+    <!-- ===================================================
+         SEÇÃO 3 — VARAL DE MEMÓRIAS
+         Troque os três src abaixo pelas suas fotos
+    =================================================== -->
+    <section class="clothesline-section reveal">
+      <p class="clothesline-title">Nossas Memórias</p>
+      <div class="clothesline-rope-wrap">
+        <div class="rope"></div>
+        <div class="polaroids-row">
+
+          <div class="polaroid-item">
+            <div class="clip"></div>
+            <div class="polaroid">
+              <!-- ALTERE: 1ª foto do varal -->
+              <img src="./assets/fotos/varalzeroum.jpeg" alt="Memória 1" />
+              <p class="polaroid-label">nosso começo ♡</p>
+            </div>
+          </div>
+
+          <div class="polaroid-item">
+            <div class="clip"></div>
+            <div class="polaroid">
+              <!-- ALTERE: 2ª foto do varal -->
+              <img src="./assets/fotos/varaldois.jpeg" alt="Memória 2" />
+              <p class="polaroid-label">felicidade ♡</p>
+            </div>
+          </div>
+
+          <div class="polaroid-item">
+            <div class="clip"></div>
+            <div class="polaroid">
+              <!-- ALTERE: 3ª foto do varal -->
+              <img src="./assets/fotos/varaltres.jpeg" alt="Memória 3" />
+              <p class="polaroid-label">para sempre ♡</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="divider reveal"><div class="divider-line"></div><span class="divider-icon">❤</span><div class="divider-line"></div></div>
+
+    <!-- ===================================================
+         SEÇÃO 4 — CARTA DE AMOR
+         Edite o texto dentro de #letter-body
+    =================================================== -->
+    <section class="letter-section reveal">
+      <p class="letter-section-title">Uma carta para você</p>
+      <div class="letter-card">
+        <div class="letter-seal">
+          <div class="letter-seal-line"></div>
+          <span class="letter-seal-heart">💌</span>
+          <div class="letter-seal-line"></div>
+        </div>
+
+        <!-- ALTERE: texto da carta (máx. ~1500 caracteres) -->
+        <p id="letter-body">Meu amor,
+
+Existe uma magia silenciosa em estar do seu lado. Não sei ao certo como você faz isso — transforma dias comuns em memórias que quero guardar para sempre, e faz cada momento ordinário parecer o mais bonito do mundo.
+
+Você é a minha paz, o meu lar, o meu lugar favorito. No barulho do mundo, você é o silêncio que me acalma. No caos da vida, você é a certeza que me mantém de pé.
+
+Cada sorriso seu é um presente que não mereço mas recebo com o coração cheio. Cada abraço é um lar que carrego comigo onde quer que eu vá.
+
+Obrigado por escolher ficar. Por escolher crescer comigo, rir comigo, encarar a vida ao meu lado.
+
+Hoje, e todos os dias, eu te escolho. Te escolho no café da manhã e no fim do dia. Te escolho na chuva e no sol. Te escolho sempre.
+
+Com todo o amor que tenho,</p>
+        <p class="letter-closing">Seu amor eterno 🌹</p>
+      </div>
+    </section>
+
+    <div class="divider reveal"><div class="divider-line"></div><span class="divider-icon">✦</span><div class="divider-line"></div></div>
+
+    <!-- ===================================================
+         SEÇÃO 5 — CONTADOR
+    =================================================== -->
+    <section class="counter-section reveal">
+      <p class="counter-title">Desde o dia em que escolhemos<br>caminhar juntos ❤️</p>
+      <div class="counter-grid">
+        <div class="counter-card">
+          <span class="counter-number" id="cnt-years">0</span>
+          <span class="counter-label">Anos</span>
+        </div>
+        <div class="counter-card">
+          <span class="counter-number" id="cnt-months">0</span>
+          <span class="counter-label">Meses</span>
+        </div>
+        <div class="counter-card">
+          <span class="counter-number" id="cnt-days">0</span>
+          <span class="counter-label">Dias</span>
+        </div>
+        <div class="counter-card">
+          <span class="counter-number" id="cnt-hours">0</span>
+          <span class="counter-label">Horas</span>
+        </div>
+        <div class="counter-card">
+          <span class="counter-number" id="cnt-minutes">0</span>
+          <span class="counter-label">Minutos</span>
+        </div>
+        <div class="counter-card">
+          <span class="counter-number" id="cnt-seconds">0</span>
+          <span class="counter-label">Segundos</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider reveal"><div class="divider-line"></div><span class="divider-icon">❤</span><div class="divider-line"></div></div>
+
+    <!-- ===================================================
+         SEÇÃO 6 — MENSAGEM FINAL
+    =================================================== -->
+    <section class="final-message-section reveal">
+      <span class="final-love">EU TE AMO ❤️</span>
+      <span class="final-sub">Feliz Dia dos Namorados</span>
+      <div class="final-hearts-row">
+        <span class="final-heart">💕</span>
+        <span class="final-heart">💖</span>
+        <span class="final-heart">💗</span>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         RODAPÉ
+    =================================================== -->
+    <footer>
+      <p class="footer-quote">"Cada segundo ao seu lado<br>é o meu lugar favorito no universo."</p>
+      <div class="footer-hearts">
+        <span class="footer-heart">🤍</span>
+        <span class="footer-heart">💗</span>
+        <span class="footer-heart">❤️</span>
+        <span class="footer-heart">💗</span>
+        <span class="footer-heart">🤍</span>
+      </div>
+    </footer>
+
+  </div><!-- .page-wrapper -->
+
+  <!-- =========================================================
+       JAVASCRIPT
+  ========================================================= -->
+  <script src="./engine/engine.js"></script>
+
+</body>
+</html>

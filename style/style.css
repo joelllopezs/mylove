@@ -1,0 +1,697 @@
+:root {
+      --bg:          #0d0812;        /* fundo principal — roxo noite profundo */
+      --bg-mid:      #160d20;        /* seções intermediárias */
+      --bg-card:     #1e1128;        /* cards e cartas */
+      --rose:        #e8a0b0;
+      --rose-deep:   #c0435f;
+      --rose-glow:   rgba(192,67,95,0.28);
+      --gold:        #d4a843;
+      --gold-light:  #f0dfa0;
+      --gold-dim:    rgba(212,168,67,0.25);
+      --text-light:  #f5e8ee;        /* texto principal sobre fundo escuro */
+      --text-mid:    #c9a0b2;        /* texto secundário */
+      --text-dark:   #1a0a14;        /* texto sobre cards claros */
+      --shadow:      rgba(192,67,95,0.30);
+
+      --ff-display: 'Cormorant Garamond', serif;
+      --ff-cursive: 'Dancing Script', cursive;
+      --ff-body:    'Lato', sans-serif;
+    }
+
+    /* =========================================================
+       RESET & BASE
+    ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--ff-body);
+      background-color: var(--bg);
+      color: var(--text-light);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* =========================================================
+       CORAÇÕES FLUTUANTES — canvas fixo no fundo
+       Velocidade reduzida, opacidade menor
+    ========================================================= */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.22;   /* mais sutil */
+    }
+
+    /* =========================================================
+       LAYOUT GERAL
+    ========================================================= */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 60px;
+    }
+
+    /* =========================================================
+       REVEAL ANIMATION
+    ========================================================= */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =========================================================
+       SEÇÃO 1 — PLAYER
+    ========================================================= */
+    .player-section {
+      background: linear-gradient(160deg, #1a0820 0%, #0d0512 100%);
+      padding: 36px 24px 32px;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(212,168,67,0.12);
+    }
+
+    .player-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(192,67,95,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .player-label {
+      font-family: var(--ff-body);
+      font-size: 0.68rem;
+      letter-spacing: 0.20em;
+      color: var(--rose);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 20px;
+      opacity: 0.75;
+    }
+
+    .player-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    /* CAPA — redonda, rotação lenta */
+    .player-cover-wrap {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;           /* ← REDONDA */
+      overflow: hidden;
+      box-shadow: 0 0 0 4px rgba(212,168,67,0.25), 0 8px 40px rgba(192,67,95,0.45);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .player-cover-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* rotação MUITO LENTA (90s) — funciona igual em qualquer tela/fps */
+    .player-cover-wrap img {
+      /* will-change garante que o browser use GPU e não recalcule layout */
+      will-change: transform;
+      transform-origin: center center;
+    }
+    .player-cover-wrap.playing img {
+      animation: coverSpin 90s linear infinite;
+    }
+    /* pausa a rotação quando não está tocando */
+    .player-cover-wrap:not(.playing) img {
+      animation: none;
+    }
+
+    @keyframes coverSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .player-info { text-align: center; }
+
+    .player-song-name {
+      font-family: var(--ff-display);
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+
+    .player-artist {
+      font-size: 0.78rem;
+      color: var(--rose);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+    }
+
+    /* equalizer */
+    .equalizer {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 18px;
+      margin: 10px auto 0;
+      width: fit-content;
+    }
+    .eq-bar {
+      width: 3px;
+      background: var(--rose);
+      border-radius: 2px;
+      animation: eqAnim 0.9s ease-in-out infinite alternate;
+    }
+    .eq-bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
+    .eq-bar:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+    .eq-bar:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+    .eq-bar:nth-child(4) { height: 16px; animation-delay: 0.1s; }
+    @keyframes eqAnim { to { height: 3px; opacity: 0.4; } }
+    .equalizer.paused .eq-bar { animation-play-state: paused; }
+
+    /* barra de progresso */
+    .player-progress-bar {
+      width: 100%;
+      max-width: 300px;
+      height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 99px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .player-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--rose-deep), var(--gold));
+      border-radius: 99px;
+      transition: width 0.5s linear;
+    }
+    .player-time {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 300px;
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.38);
+      margin-top: 4px;
+    }
+
+    /* controles */
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .player-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255,255,255,0.45);
+      font-size: 1.1rem;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .player-btn:hover { color: #fff; transform: scale(1.1); }
+
+    .player-btn-play {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--rose-deep), #8a1f38);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 22px rgba(192,67,95,0.55);
+      color: #fff !important;
+      font-size: 1.3rem !important;
+      transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+    .player-btn-play:hover {
+      transform: scale(1.08) !important;
+      box-shadow: 0 6px 30px rgba(192,67,95,0.75) !important;
+    }
+
+    /* =========================================================
+       DIVISORES
+    ========================================================= */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 24px;
+      margin: 6px 0;
+    }
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,160,176,0.25), transparent);
+    }
+    .divider-icon { font-size: 0.85rem; color: rgba(232,160,176,0.5); }
+
+    /* =========================================================
+       SEÇÃO 2 — FOTO PRINCIPAL
+       Foto com borda arredondada mas NÃO circular (quadro elegante)
+    ========================================================= */
+    .main-photo-section {
+      padding: 44px 28px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg-mid);
+    }
+
+    .main-photo-frame {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 2px var(--gold-dim),
+        0 0 0 6px rgba(212,168,67,0.08),
+        0 16px 52px var(--shadow);
+      position: relative;
+      animation: frameFloat 7s ease-in-out infinite;
+    }
+
+    /* FALLBACK — se a imagem não carregar, mostra placeholder bonito */
+    .main-photo-frame::after {
+      content: '📷';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      background: linear-gradient(135deg, #1e1128, #2a1040);
+      z-index: -1;
+    }
+
+    @keyframes frameFloat {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-6px); }
+    }
+
+    /* Foto principal com proporção fixa — não "estica" se imagem não carregar */
+    #main-photo {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, #1e1128, #2a1040); /* placeholder escuro */
+    }
+
+    .main-photo-caption {
+      font-family: var(--ff-cursive);
+      font-size: 1.45rem;
+      color: var(--rose);
+      text-align: center;
+      text-shadow: 0 0 20px rgba(192,67,95,0.4);
+    }
+
+    /* =========================================================
+       SEÇÃO 3 — VARAL DE MEMÓRIAS
+    ========================================================= */
+    .clothesline-section {
+      padding: 20px 0 48px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .clothesline-title {
+      font-family: var(--ff-display);
+      font-size: 1.35rem;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text-mid);
+      text-align: center;
+      margin-bottom: 32px;
+      letter-spacing: 0.04em;
+    }
+
+    .clothesline-rope-wrap {
+      position: relative;
+      width: 100%;
+      padding: 0 12px;
+    }
+
+    .rope {
+      position: absolute;
+      top: 26px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #b09060 8%, #8a6a40 50%, #b09060 92%, transparent 100%);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      z-index: 1;
+    }
+
+    .polaroids-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding-top: 8px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .clip {
+      width: 14px;
+      height: 20px;
+      background: linear-gradient(180deg, #e0ccb0 0%, #b89060 100%);
+      border-radius: 3px 3px 4px 4px;
+      margin: 0 auto -4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      position: relative;
+      z-index: 3;
+    }
+    .clip::after {
+      content: '';
+      position: absolute;
+      top: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 5px; height: 12px;
+      background: rgba(0,0,0,0.15);
+      border-radius: 2px;
+    }
+
+    .polaroid-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 130px;
+      transition: transform 0.35s ease, filter 0.35s ease;
+    }
+
+    .polaroid-item:nth-child(1) .polaroid { transform: rotate(-4deg); }
+    .polaroid-item:nth-child(2) .polaroid { transform: rotate(2deg); }
+    .polaroid-item:nth-child(3) .polaroid { transform: rotate(-2.5deg); }
+
+    .polaroid-item:hover {
+      transform: translateY(-10px) scale(1.05);
+      filter: drop-shadow(0 14px 22px rgba(192,67,95,0.4));
+    }
+
+    .polaroid {
+      background: #fff;
+      padding: 7px 7px 26px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      width: 100%;
+    }
+
+    .polaroid img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      background: #e0d0d8; /* placeholder */
+    }
+
+    .polaroid-label {
+      font-family: var(--ff-cursive);
+      font-size: 0.7rem;
+      color: #888;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    /* =========================================================
+       SEÇÃO 4 — CARTA DE AMOR
+    ========================================================= */
+    .letter-section {
+      padding: 16px 24px 48px;
+      background: var(--bg-mid);
+    }
+
+    .letter-section-title {
+      font-family: var(--ff-display);
+      font-size: 1.35rem;
+      font-style: italic;
+      color: var(--text-mid);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .letter-card {
+      background: linear-gradient(160deg, #fdf6f0 0%, #fdf0f4 100%);
+      border: 1px solid rgba(212,168,67,0.28);
+      border-radius: 16px;
+      padding: 36px 26px 30px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 12px 40px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .letter-card::before {
+      content: '❝';
+      position: absolute;
+      top: 10px; left: 18px;
+      font-size: 5rem;
+      color: #f4dde4;
+      line-height: 1;
+      pointer-events: none;
+      font-family: Georgia, serif;
+    }
+
+    .letter-seal {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .letter-seal-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,168,67,0.4));
+    }
+    .letter-seal-line:last-child {
+      background: linear-gradient(90deg, rgba(212,168,67,0.4), transparent);
+    }
+    .letter-seal-heart {
+      font-size: 1.3rem;
+      animation: heartBeat 2s ease-in-out infinite;
+    }
+
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      14%       { transform: scale(1.22); }
+      28%       { transform: scale(1); }
+      42%       { transform: scale(1.15); }
+      56%       { transform: scale(1); }
+    }
+
+    #letter-body {
+      font-family: var(--ff-cursive);
+      font-size: 1.1rem;
+      line-height: 1.9;
+      color: #3a1a22;
+      white-space: pre-wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .letter-closing {
+      font-family: var(--ff-cursive);
+      font-size: 1.1rem;
+      color: var(--rose-deep);
+      text-align: right;
+      margin-top: 22px;
+    }
+
+    /* =========================================================
+       SEÇÃO 5 — CONTADOR
+    ========================================================= */
+    .counter-section {
+      padding: 16px 24px 48px;
+      background: var(--bg);
+    }
+
+    .counter-title {
+      font-family: var(--ff-display);
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--text-mid);
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .counter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .counter-card {
+      background: linear-gradient(160deg, #1e1128 0%, #2a1540 100%);
+      border: 1px solid rgba(192,67,95,0.2);
+      border-radius: 14px;
+      padding: 18px 8px 14px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .counter-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(192,67,95,0.25);
+    }
+
+    .counter-number {
+      font-family: var(--ff-display);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--rose);
+      line-height: 1;
+      display: block;
+      text-shadow: 0 0 20px rgba(192,67,95,0.5);
+    }
+
+    .counter-label {
+      font-family: var(--ff-body);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-top: 7px;
+      display: block;
+      opacity: 0.7;
+    }
+
+    /* =========================================================
+       SEÇÃO 6 — MENSAGEM FINAL
+    ========================================================= */
+    .final-message-section {
+      padding: 36px 24px 52px;
+      text-align: center;
+      background: var(--bg-mid);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .final-message-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(192,67,95,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .final-love {
+      font-family: var(--ff-display);
+      font-size: 3rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--rose-deep) 0%, var(--gold) 50%, var(--rose-deep) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3.5s linear infinite;
+      display: block;
+      line-height: 1.15;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    .final-sub {
+      font-family: var(--ff-cursive);
+      font-size: 1.4rem;
+      color: var(--text-mid);
+      margin-top: 12px;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* corações finais — pulsam suavemente, NÃO giram nem saltam demais */
+    .final-hearts-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .final-heart {
+      font-size: 1.5rem;
+      animation: heartBeat 2.2s ease-in-out infinite;
+    }
+    .final-heart:nth-child(2) { animation-delay: 0.4s; }
+    .final-heart:nth-child(3) { animation-delay: 0.8s; }
+
+    /* =========================================================
+       RODAPÉ — corações com animação SUAVE (não saltam)
+    ========================================================= */
+    footer {
+      background: linear-gradient(160deg, #120618, #0a0312);
+      padding: 40px 24px 36px;
+      text-align: center;
+      border-top: 1px solid rgba(212,168,67,0.1);
+    }
+
+    .footer-quote {
+      font-family: var(--ff-cursive);
+      font-size: 1.1rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+    }
+
+    .footer-hearts {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    /* ← animação suave: apenas fade + escala pequena */
+    .footer-heart {
+      font-size: 0.95rem;
+      opacity: 0.5;
+      animation: footerPulse 3.5s ease-in-out infinite;
+      display: inline-block;
+    }
+    .footer-heart:nth-child(1) { animation-delay: 0s; }
+    .footer-heart:nth-child(2) { animation-delay: 0.7s; }
+    .footer-heart:nth-child(3) { animation-delay: 1.4s; }
+    .footer-heart:nth-child(4) { animation-delay: 2.1s; }
+    .footer-heart:nth-child(5) { animation-delay: 2.8s; }
+
+    @keyframes footerPulse {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50%       { opacity: 0.85; transform: scale(1.18); }
+    }
+
+    /* =========================================================
+       RESPONSIVO — DESKTOP
+    ========================================================= */
+    @media (min-width: 600px) {
+      .page-wrapper        { max-width: 520px; }
+      .player-cover-wrap   { width: 190px; height: 190px; }
+      .counter-number      { font-size: 2.3rem; }
+      .final-love          { font-size: 3.8rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
