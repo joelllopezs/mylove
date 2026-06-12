@@ -18,9 +18,6 @@
   --ff-body:    'Lato', sans-serif;
 }
 
-/* =========================================================
-   RESET & BASE
-========================================================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
 
@@ -32,20 +29,14 @@ body {
   min-height: 100vh;
 }
 
-/* =========================================================
-   CANVAS CORAÇÕES
-========================================================= */
 #hearts-canvas {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.20;
+  opacity: 0.18;
 }
 
-/* =========================================================
-   LAYOUT GERAL
-========================================================= */
 .page-wrapper {
   position: relative;
   z-index: 1;
@@ -55,20 +46,18 @@ body {
 }
 
 /* =========================================================
-   REVEAL ANIMATION
+   REVEAL
 ========================================================= */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.9s ease, transform 0.9s ease;
+  transition: opacity 1s ease;
 }
 .reveal.visible {
   opacity: 1;
-  transform: translateY(0);
 }
 
 /* =========================================================
-   SEÇÃO 1 — PLAYER
+   PLAYER
 ========================================================= */
 .player-section {
   background: linear-gradient(160deg, #1a0820 0%, #0d0512 100%);
@@ -104,21 +93,20 @@ body {
   gap: 18px;
 }
 
-/* CAPA — redonda
-   FIX MOBILE: isolation + backface-visibility evitam tremor
-   A rotação usa translate3d(0,0,0) pra forçar GPU layer própria
+/* 
+  FIX ANDROID: A capa NÃO usa overflow:hidden + border-radius + animation juntos
+  Em vez disso, o clip circular é feito no wrapper com clip-path
+  e a rotação fica numa img filha separada — camadas independentes
 */
 .player-cover-wrap {
   width: 160px;
   height: 160px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 0 0 4px rgba(212,168,67,0.25), 0 8px 40px rgba(192,67,95,0.45);
   flex-shrink: 0;
-  /* isola o elemento em layer própria — evita que o browser
-     recomposite o resto da página a cada frame */
-  isolation: isolate;
-  transform: translateZ(0);
+  position: relative;
+  /* clip circular SEM overflow:hidden — evita recalculo de clip a cada frame */
+  clip-path: circle(50%);
+  /* anel dourado via outline não afeta o clip */
+  filter: drop-shadow(0 0 0 4px rgba(212,168,67,0.3)) drop-shadow(0 8px 20px rgba(192,67,95,0.5));
 }
 
 .player-cover-wrap img {
@@ -126,27 +114,23 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
-  /* GPU layer dedicada à imagem */
-  will-change: transform;
+  /* layer GPU própria — isolada do wrapper */
+  transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  transform-origin: 50% 50%;
 }
 
-/* Rotação lenta: 120s no mobile, sem escala, só rotate
-   — escala junto com rotate causa tremer em iOS/Android */
+/* Rotação lenta: 120s, só rotate, translateZ(0) mantém na GPU */
 .player-cover-wrap.playing img {
   animation: coverSpin 120s linear infinite;
 }
-
 .player-cover-wrap:not(.playing) img {
   animation: none;
-  transform: none;
 }
 
 @keyframes coverSpin {
-  from { transform: rotate(0deg) translateZ(0); }
-  to   { transform: rotate(360deg) translateZ(0); }
+  0%   { transform: translateZ(0) rotate(0deg); }
+  100% { transform: translateZ(0) rotate(360deg); }
 }
 
 .player-info { text-align: center; }
@@ -179,7 +163,6 @@ body {
   background: var(--rose);
   border-radius: 2px;
   animation: eqAnim 0.9s ease-in-out infinite alternate;
-  will-change: height;
 }
 .eq-bar:nth-child(1) { height: 8px;  animation-delay: 0s; }
 .eq-bar:nth-child(2) { height: 14px; animation-delay: 0.15s; }
@@ -225,9 +208,9 @@ body {
   cursor: pointer;
   color: rgba(255,255,255,0.45);
   font-size: 1.1rem;
-  transition: color 0.2s, transform 0.2s;
+  transition: color 0.2s;
 }
-.player-btn:hover { color: #fff; transform: scale(1.1); }
+.player-btn:hover { color: #fff; }
 
 .player-btn-play {
   width: 52px;
@@ -240,11 +223,6 @@ body {
   box-shadow: 0 4px 22px rgba(192,67,95,0.55);
   color: #fff !important;
   font-size: 1.3rem !important;
-  transition: transform 0.2s, box-shadow 0.2s !important;
-}
-.player-btn-play:hover {
-  transform: scale(1.08) !important;
-  box-shadow: 0 6px 30px rgba(192,67,95,0.75) !important;
 }
 
 /* =========================================================
@@ -265,9 +243,9 @@ body {
 .divider-icon { font-size: 0.85rem; color: rgba(232,160,176,0.5); }
 
 /* =========================================================
-   SEÇÃO 2 — FOTO PRINCIPAL
-   FIX: frameFloat usa translate3d — sem rotate, sem scale
-   Isso elimina o tremor no celular completamente
+   FOTO PRINCIPAL
+   FIX ANDROID: NÃO anima o frame que tem overflow:hidden + border-radius
+   Em vez disso, anima um wrapper externo SEM overflow:hidden
 ========================================================= */
 .main-photo-section {
   padding: 44px 28px 36px;
@@ -278,6 +256,19 @@ body {
   background: var(--bg-mid);
 }
 
+/* wrapper externo — só ele flutua, sem overflow:hidden */
+.main-photo-float {
+  animation: frameFloat 8s ease-in-out infinite;
+  transform: translateZ(0);
+}
+
+@keyframes frameFloat {
+  0%   { transform: translateZ(0) translateY(0px); }
+  50%  { transform: translateZ(0) translateY(-8px); }
+  100% { transform: translateZ(0) translateY(0px); }
+}
+
+/* frame interno — borda e clip, SEM animação */
 .main-photo-frame {
   width: 100%;
   max-width: 300px;
@@ -288,11 +279,6 @@ body {
     0 0 0 6px rgba(212,168,67,0.08),
     0 16px 52px var(--shadow);
   position: relative;
-  /* GPU layer própria — evita tremor */
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  animation: frameFloat 8s ease-in-out infinite;
 }
 
 .main-photo-frame::after {
@@ -305,13 +291,6 @@ body {
   font-size: 3rem;
   background: linear-gradient(135deg, #1e1128, #2a1040);
   z-index: -1;
-}
-
-/* FIX: usa translate3d puro — NUNCA mistura scale+translate no mobile */
-@keyframes frameFloat {
-  0%   { transform: translate3d(0, 0px, 0); }
-  50%  { transform: translate3d(0, -7px, 0); }
-  100% { transform: translate3d(0, 0px, 0); }
 }
 
 #main-photo {
@@ -331,7 +310,7 @@ body {
 }
 
 /* =========================================================
-   SEÇÃO 3 — VARAL DE MEMÓRIAS
+   VARAL DE MEMÓRIAS
 ========================================================= */
 .clothesline-section {
   padding: 20px 0 48px;
@@ -360,8 +339,7 @@ body {
 .rope {
   position: absolute;
   top: 26px;
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   height: 2px;
   background: linear-gradient(90deg, transparent 0%, #b09060 8%, #8a6a40 50%, #b09060 92%, transparent 100%);
   box-shadow: 0 1px 4px rgba(0,0,0,0.4);
@@ -403,17 +381,11 @@ body {
   align-items: center;
   flex: 1;
   max-width: 130px;
-  transition: transform 0.35s ease, filter 0.35s ease;
 }
 
 .polaroid-item:nth-child(1) .polaroid { transform: rotate(-4deg); }
 .polaroid-item:nth-child(2) .polaroid { transform: rotate(2deg); }
 .polaroid-item:nth-child(3) .polaroid { transform: rotate(-2.5deg); }
-
-.polaroid-item:hover {
-  transform: translateY(-10px) scale(1.05);
-  filter: drop-shadow(0 14px 22px rgba(192,67,95,0.4));
-}
 
 .polaroid {
   background: #fff;
@@ -439,7 +411,7 @@ body {
 }
 
 /* =========================================================
-   SEÇÃO 4 — CARTA DE AMOR
+   CARTA DE AMOR
 ========================================================= */
 .letter-section {
   padding: 16px 24px 48px;
@@ -494,18 +466,14 @@ body {
 }
 .letter-seal-heart {
   font-size: 1.3rem;
-  animation: heartBeat 2s ease-in-out infinite;
   display: inline-block;
-  will-change: transform;
+  animation: heartPulse 2s ease-in-out infinite;
 }
 
-/* heartBeat: usa scale3d — mais estável no mobile */
-@keyframes heartBeat {
-  0%, 100% { transform: scale3d(1, 1, 1); }
-  14%       { transform: scale3d(1.2, 1.2, 1); }
-  28%       { transform: scale3d(1, 1, 1); }
-  42%       { transform: scale3d(1.12, 1.12, 1); }
-  56%       { transform: scale3d(1, 1, 1); }
+/* heartPulse: SÓ opacity — zero transform = zero tremor */
+@keyframes heartPulse {
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1; }
 }
 
 #letter-body {
@@ -527,7 +495,7 @@ body {
 }
 
 /* =========================================================
-   SEÇÃO 5 — CONTADOR
+   CONTADOR
 ========================================================= */
 .counter-section {
   padding: 16px 24px 48px;
@@ -557,12 +525,6 @@ body {
   padding: 18px 8px 14px;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.counter-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(192,67,95,0.25);
 }
 
 .counter-number {
@@ -587,7 +549,7 @@ body {
 }
 
 /* =========================================================
-   SEÇÃO 6 — MENSAGEM FINAL
+   MENSAGEM FINAL
 ========================================================= */
 .final-message-section {
   padding: 36px 24px 52px;
@@ -642,20 +604,17 @@ body {
   z-index: 1;
 }
 
-/* FIX: corações finais — scale3d isolado, sem translateY junto */
+/* corações finais: SÓ opacity */
 .final-heart {
   font-size: 1.5rem;
   display: inline-block;
-  will-change: transform;
-  animation: heartBeat 2.2s ease-in-out infinite;
+  animation: heartPulse 2s ease-in-out infinite;
 }
-.final-heart:nth-child(2) { animation-delay: 0.4s; }
-.final-heart:nth-child(3) { animation-delay: 0.8s; }
+.final-heart:nth-child(2) { animation-delay: 0.5s; }
+.final-heart:nth-child(3) { animation-delay: 1s; }
 
 /* =========================================================
-   RODAPÉ
-   FIX: footerPulse usa APENAS opacity — zero transform
-   Isso elimina qualquer tremor nos corações do rodapé
+   RODAPÉ — SÓ opacity, zero transform
 ========================================================= */
 footer {
   background: linear-gradient(160deg, #120618, #0a0312);
@@ -678,26 +637,19 @@ footer {
   margin-top: 20px;
 }
 
-/* Apenas opacity — NENHUM transform = zero tremor */
 .footer-heart {
   font-size: 0.95rem;
   display: inline-block;
-  animation: footerPulse 3.5s ease-in-out infinite;
+  animation: heartPulse 3s ease-in-out infinite;
 }
 .footer-heart:nth-child(1) { animation-delay: 0s; }
-.footer-heart:nth-child(2) { animation-delay: 0.7s; }
-.footer-heart:nth-child(3) { animation-delay: 1.4s; }
-.footer-heart:nth-child(4) { animation-delay: 2.1s; }
-.footer-heart:nth-child(5) { animation-delay: 2.8s; }
-
-/* SÓ opacity — sem scale, sem translate */
-@keyframes footerPulse {
-  0%, 100% { opacity: 0.25; }
-  50%       { opacity: 0.9; }
-}
+.footer-heart:nth-child(2) { animation-delay: 0.6s; }
+.footer-heart:nth-child(3) { animation-delay: 1.2s; }
+.footer-heart:nth-child(4) { animation-delay: 1.8s; }
+.footer-heart:nth-child(5) { animation-delay: 2.4s; }
 
 /* =========================================================
-   RESPONSIVO — DESKTOP
+   RESPONSIVO
 ========================================================= */
 @media (min-width: 600px) {
   .page-wrapper      { max-width: 520px; }
