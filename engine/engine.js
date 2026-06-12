@@ -3,7 +3,7 @@
   ------------------------------------------------------- */
  const CONFIG = {
   MUSIC_URL:   './assets/sounds/music.mp3',
-  MUSIC_NAME:  'Nossa Música Especial',
+  MUSIC_NAME:  'Nosso Primeiro Valentine Days',
   MUSIC_COVER: './assets/fotos/capa.jpeg',
   START_DATE:  new Date(2026, 3, 11)
 };
